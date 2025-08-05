@@ -378,6 +378,11 @@ def create_oura_client(access_token: str) -> OuraClient:
 # Create MCP server
 mcp = FastMCP("Oura API MCP Server")
 
+# Add a route at root path to handle Railway's proxy
+@mcp.custom_route("/")
+def root_handler():
+    return {"message": "Oura MCP Server is running. Use /mcp/ endpoint for MCP protocol."}
+
 # Add tools for querying sleep data
 @mcp.tool()
 def get_sleep_data(access_token: str, start_date: str, end_date: str) -> dict[str, Any]:

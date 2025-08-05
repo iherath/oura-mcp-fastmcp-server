@@ -380,7 +380,7 @@ mcp = FastMCP("Oura API MCP Server")
 
 # Add a route at root path to handle Railway's proxy
 @mcp.custom_route("/", methods=["GET", "POST"])
-def root_handler():
+def root_handler(request):
     return {"message": "Oura MCP Server is running. Use /mcp/ endpoint for MCP protocol."}
 
 # Add tools for querying sleep data

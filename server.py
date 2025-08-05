@@ -10,7 +10,7 @@ from datetime import date, datetime
 from typing import Any, Optional
 
 import httpx
-from fastmcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 from fastmcp.client.transports import StreamableHttpTransport
 from fastmcp.client import Client
 
@@ -347,13 +347,6 @@ def create_oura_client(access_token: str) -> OuraClient:
 # Create MCP server
 mcp = FastMCP("Oura API MCP Server")
 
-# Add health check endpoint
-@mcp.custom_route("/health", methods=["GET"])
-async def health_check():
-    """Health check endpoint for deployment monitoring."""
-    return {"status": "ok", "service": "oura-mcp-server", "timestamp": datetime.now().isoformat()}
-
-
 # Add tools for querying sleep data
 @mcp.tool()
 def get_sleep_data(access_token: str, start_date: str, end_date: str) -> dict[str, Any]:
@@ -501,8 +494,8 @@ def main() -> None:
     
     print(f"Starting server on {host}:{port}")
     
-    # Use StreamableHTTP transport for remote deployment
-    mcp.run(transport="streamablehttp", host=host, port=port)
+    # Use HTTP transport for remote deployment
+    mcp.run(transport="http", host=host, port=port)
 
 
 if __name__ == "__main__":

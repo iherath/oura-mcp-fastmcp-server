@@ -494,8 +494,15 @@ def get_today_resilience_data(access_token: str) -> dict[str, Any]:
 def main() -> None:
     print("Starting Oura MCP server!")
     print("This server requires users to provide their Oura Personal Access Token dynamically.")
+    
+    # Get port from environment variable (Railway sets this)
+    port = int(os.environ.get("PORT", 3000))
+    host = os.environ.get("HOST", "0.0.0.0")
+    
+    print(f"Starting server on {host}:{port}")
+    
     # Use StreamableHTTP transport for remote deployment
-    mcp.run(transport="streamablehttp")
+    mcp.run(transport="streamablehttp", host=host, port=port)
 
 
 if __name__ == "__main__":

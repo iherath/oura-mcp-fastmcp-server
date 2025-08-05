@@ -532,7 +532,7 @@ def main() -> None:
     print("This server requires users to provide their Oura Personal Access Token dynamically.")
     
     # Get port from environment variable (Railway sets this)
-    port = int(os.environ.get("PORT", 8000))
+    port = int(os.environ.get("PORT", 3000))
     host = os.environ.get("HOST", "0.0.0.0")
     
     print(f"Starting server on {host}:{port}")

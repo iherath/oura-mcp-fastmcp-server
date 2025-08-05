@@ -379,7 +379,7 @@ def create_oura_client(access_token: str) -> OuraClient:
 mcp = FastMCP("Oura API MCP Server")
 
 # Add a route at root path to handle Railway's proxy
-@mcp.custom_route("/")
+@mcp.custom_route("/", methods=["GET"])
 def root_handler():
     return {"message": "Oura MCP Server is running. Use /mcp/ endpoint for MCP protocol."}
 

@@ -328,6 +328,33 @@ def parse_date(date_str: str) -> date:
         ) from err
 
 
+def validate_oura_token(access_token: str) -> bool:
+    """
+    Validate an Oura API token by making a simple API call.
+    
+    Args:
+        access_token: Personal access token for Oura API
+        
+    Returns:
+        True if token is valid, False otherwise
+    """
+    try:
+        client = OuraClient(access_token)
+        # Make a simple API call to test the token
+        response = client.client.get(
+            f"{client.BASE_URL}/sleep",
+            headers=client.headers,
+            params={"start_date": "2024-01-01", "end_date": "2024-01-01"}
+        )
+        client.close()
+        
+        if response.status_code == 401:
+            return False
+        return True
+    except Exception:
+        return False
+
+
 def create_oura_client(access_token: str) -> OuraClient:
     """
     Create an OuraClient instance with the provided access token.
@@ -341,22 +368,15 @@ def create_oura_client(access_token: str) -> OuraClient:
     if not access_token:
         raise ValueError("Access token is required")
     
+    # Validate the token first
+    if not validate_oura_token(access_token):
+        raise ValueError("Invalid Oura API token. Please check your Personal Access Token and try again.")
+    
     return OuraClient(access_token)
 
 
 # Create MCP server
 mcp = FastMCP("Oura API MCP Server")
-
-# Add health check endpoint
-@mcp.route("/health")
-def health_check():
-    """Health check endpoint for deployment monitoring."""
-    return {
-        "status": "ok",
-        "service": "oura-mcp-server",
-        "timestamp": datetime.now().isoformat(),
-        "mcp_server": "running"
-    }
 
 # Add tools for querying sleep data
 @mcp.tool()
@@ -379,8 +399,10 @@ def get_sleep_data(access_token: str, start_date: str, end_date: str) -> dict[st
         result = oura_client.get_sleep_data(start, end)
         oura_client.close()
         return result
+    except ValueError as e:
+        return {"error": str(e), "type": "invalid_token"}
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": f"Failed to fetch sleep data: {str(e)}", "type": "api_error"}
 
 
 @mcp.tool()
@@ -403,8 +425,10 @@ def get_readiness_data(access_token: str, start_date: str, end_date: str) -> dic
         result = oura_client.get_readiness_data(start, end)
         oura_client.close()
         return result
+    except ValueError as e:
+        return {"error": str(e), "type": "invalid_token"}
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": f"Failed to fetch readiness data: {str(e)}", "type": "api_error"}
 
 
 @mcp.tool()
@@ -427,8 +451,10 @@ def get_resilience_data(access_token: str, start_date: str, end_date: str) -> di
         result = oura_client.get_resilience_data(start, end)
         oura_client.close()
         return result
+    except ValueError as e:
+        return {"error": str(e), "type": "invalid_token"}
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": f"Failed to fetch resilience data: {str(e)}", "type": "api_error"}
 
 
 # Add tools for querying today's data
@@ -449,8 +475,10 @@ def get_today_sleep_data(access_token: str) -> dict[str, Any]:
         result = oura_client.get_sleep_data(today, today)
         oura_client.close()
         return result
+    except ValueError as e:
+        return {"error": str(e), "type": "invalid_token"}
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": f"Failed to fetch today's sleep data: {str(e)}", "type": "api_error"}
 
 
 @mcp.tool()
@@ -470,8 +498,10 @@ def get_today_readiness_data(access_token: str) -> dict[str, Any]:
         result = oura_client.get_readiness_data(today, today)
         oura_client.close()
         return result
+    except ValueError as e:
+        return {"error": str(e), "type": "invalid_token"}
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": f"Failed to fetch today's readiness data: {str(e)}", "type": "api_error"}
 
 
 @mcp.tool()
@@ -491,8 +521,10 @@ def get_today_resilience_data(access_token: str) -> dict[str, Any]:
         result = oura_client.get_resilience_data(today, today)
         oura_client.close()
         return result
+    except ValueError as e:
+        return {"error": str(e), "type": "invalid_token"}
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": f"Failed to fetch today's resilience data: {str(e)}", "type": "api_error"}
 
 
 def main() -> None:
@@ -500,7 +532,7 @@ def main() -> None:
     print("This server requires users to provide their Oura Personal Access Token dynamically.")
     
     # Get port from environment variable (Railway sets this)
-    port = int(os.environ.get("PORT", 3000))
+    port = int(os.environ.get("PORT", 8000))
     host = os.environ.get("HOST", "0.0.0.0")
     
     print(f"Starting server on {host}:{port}")
@@ -511,6 +543,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-
-

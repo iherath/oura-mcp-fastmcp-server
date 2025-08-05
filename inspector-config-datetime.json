@@ -1,0 +1,10 @@
+{
+  "servers": {
+    "oura-server": {
+      "command": "python3.10",
+      "args": [
+        "server.py"
+      ]
+    }
+  }
+}
